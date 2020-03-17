@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<style>
+  html, body {
+    margin:0;
+    padding:0;
+    height: 100%;
+    width: 100%;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    background-color: bisque;
+    height: 100px;
+    display: flex;
+    align-items: center;
+  }
+
+  .logotitle{
+    text-align: center;
+    font-size: 50px;
+    margin-left: 10px;
+  }
+  .main {
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1;
+  }
+  .left {
+    background-color:gray;
+    width: 400px;
+    display: flex;
+    flex-direction: column;
+  }
+  .datetime {
+    width: 400px;
+    height: auto;
+    font-size: 20px;
+  }
+  .right {
+    position: relative;
+    left: 50%;
+    width: 1500px;
+    /* margin-left: 300px; */
+  }
+  .outer_div::-webkit-scrollbar {display:none}
+  .outer_div{
+    max-height:100%;
+    overflow-y:auto;
+  }
+  .outertitle_div::-webkit-scrollbar {display:none}
+  .outertitle_div{
+    max-height:100%;
+    overflow-y:auto;
+  }
+
+  .TitleBox{
+  background-color: #F8F8F8;
+  width: 400px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+  }
+  .span {
+    display: block;
+    text-align: center;
+  }
+</style>
+<body onload="loadarticletitle()">
+  <header>
+    <img src="./logo.jpg" alt="logo" style="width: 100px;">
+    <span class="logotitle">知乎日报</span>
+  </header>
+  <div class="main">
+    <div class="outertitle_div" id="outertitle_div">
+      <div class="left" id="left">
+        <div id="datetime" class="datetime"></div>
+      </div>
+    </div>  
+
+    <div class="outer_div">
+      <div class="right" id="right"></div>
+    </div>
+  </div>
+</body>
+<script>
+  let nextdate = "";   //记录下一次刷新的日期
+
+
+  //加载今天的知乎日报标题
+  function loadarticletitle() {
+    req = new XMLHttpRequest();
+    req.open("GET","https://zhihu-daily.leanapp.cn/api/v1/last-stories",true);
+    req.setRequestHeader('Content-Type','text/plain');
+    req.onreadystatechange=function(){
+      if(req.readyState==4 && req.status==200){
+        let result = JSON.parse(req.responseText);	
+        let curdate = result.STORIES.date;
+        nextdate = curdate -1;
+        document.getElementById("datetime").innerText = curdate
+        articletitle = result.STORIES.stories;
+        let length = articletitle.length;
+        loadtitle(length);
+        loadarticletitlenext(nextdate);
+      }
+    };
+    req.send();
+  }
+
+  //加载刷新的知乎日报标题栏
+  function loadarticletitlenext(date) {
+    req = new XMLHttpRequest();
+    req.open("GET","https://zhihu-daily.leanapp.cn/api/v1/before-stories/" + date,true);
+    req.setRequestHeader('Content-Type','text/plain');
+    req.onreadystatechange=function(){
+      if(req.readyState==4 && req.status==200){
+        let result = JSON.parse(req.responseText);	
+        articletitle = result.STORIES.stories;
+        let length = articletitle.length;
+        loadtitle(length);
+        nextdate -=1;
+      }
+    };
+    req.send();
+  }
+
+  //加载点击的文章
+  function loadarticle(id) {
+    req = new XMLHttpRequest();
+    req.open("GET","https://zhihu-daily.leanapp.cn/api/v1/contents/" + id ,true);
+    req.setRequestHeader('Content-Type','text/plain');
+    req.onreadystatechange=function(){
+      if(req.readyState==4 && req.status==200){
+        let result = JSON.parse(req.responseText);	
+        let mainarticle = document.getElementById("right");
+        mainarticle.innerHTML = result.CONTENTS.body
+        nextdate -=1;
+      }
+    };
+    req.send();
+  }
+
+  //加载知乎日报的标题栏
+  function loadtitle(length) {
+    for (i = 0 ; i < length ; i++ ) {
+      let elemnt = document.getElementById("left");
+      let para = document.createElement("div");
+      let node = document.createElement("img");
+      node.setAttribute("src",articletitle[i].images[0]);
+      let title = document.createElement("span");
+      title.innerText = articletitle[i].title;
+      title.setAttribute("class", "span");
+      let titleid = articletitle[i].id
+      para.addEventListener("click",function() { loadarticle(titleid)},false)
+      //title.firstChild.nodeValue = articletitle[i].title;
+      elemnt.appendChild(para);
+      para.setAttribute("class", "TitleBox")
+      para.appendChild(node);
+      para.appendChild(title)
+    }
+  }
+
+  //底部刷新模块
+  let a =document.getElementById("outertitle_div")
+  a.addEventListener("scroll",function(event){
+    if(a.scrollHeight == a.clientHeight + a.scrollTop ) {
+      loadarticletitlenext(nextdate);
+    }     
+  });
+
+</script>
+</html>
+
