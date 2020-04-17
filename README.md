@@ -15,4 +15,4 @@
   <li>使用了事件监听来监听滚动条的动态</li>
 </ul>
 <h2>效果图</h2>
-<img src="https://github.com/412193388/origin_zhihuribao/blob/master/xiaoguotu.png">
+<img src="https://ae01.alicdn.com/kf/H498fa4f69771494687112b8cef6b5bc7F.jpg">
